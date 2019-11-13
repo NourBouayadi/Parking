@@ -26,4 +26,18 @@ Route::get('/date', function(){
 
 });
 Route::get('/price/{id}','QrController@calculer');
+Route::get('/print/{id}','QrController@pqr');
 
+Route::get('/imprimer', function(){
+    $pdf = App::make('dompdf.wrapper');
+    $pdf->loadHTML('<table class="tg">
+
+ <tr>
+    <th class="tg-0lax" rowspan="3"><img src="'. public_path() .'/assets/img/qrcode.png" ></img></th>
+    <th class="tg-0lax"></th>
+  </tr>
+  
+</table>');
+   return $pdf->stream();
+});
+Route::get('/imprimer/{id}','QrController@qr');

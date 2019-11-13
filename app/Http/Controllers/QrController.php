@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Ticket;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App;
+use Illuminate\Support\Facades\DB;
+
 
 class QrController extends Controller
 {
@@ -19,25 +22,45 @@ class QrController extends Controller
     }
     public function index()
     {
-
-        $tickets = Ticket::all();
+        $tickets = DB::table('tickets')->paginate(10);
 
         return view('dashboard', compact(['tickets']));
 
     }
 
-     public function qr (Request $request){
-            $ticket = new Ticket();
-            $ticket->matricule = $request->input('data');
-            $ticket->save();
+     public function qr ($id){
 
-      /*   $qr= "Matricule: ".$ticket->matricule." À: ".$ticket->created_at;
+         \Debugbar::disable();
+            $ticket = Ticket::find($id);
 
-        \QrCode::format('png')
-            ->size(250)
-            ->generate($qr, public_path('/assets/img/qrcode.png'));
-        echo '<img src="/assets/img/qrcode.png" ></img>';*/
-    }
+         $qr= "Matricule: ".$ticket->matricule." À: ".$ticket->created_at;
+//////
+         \QrCode::format('png')
+             ->size(250)
+             ->generate($qr, public_path('/assets/img/qrcode.png'));
+        sleep(5);
+         $pdf = App::make('dompdf.wrapper');
+         $pdf->loadHTML('<table border="1">
+
+ <tr>
+    <th class="tg-0lax" rowspan="4"><img src="'. public_path() .'/assets/img/qrcode.png" ></img></th>
+    <th class="tg-0lax">Matricule: '.$ticket->matricule.'</th>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Entrée: '.$ticket->created_at.'</td>
+  </tr>
+  <tr>
+   <td class="tg-0lax">Sorite : '.$ticket->finished_at.'</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><h2>Tarif: '.$ticket->price.' €</h2></td>
+  </tr>
+</table>');
+/////
+
+          return $pdf->stream();
+
+     }
     public function calculer($id)
     {
 
@@ -94,12 +117,6 @@ class QrController extends Controller
         );
         $ticket = Ticket::find($id);
 
-        $qr= "Matricule: ".$ticket->matricule." À: ".$ticket->created_at;
-
-        \QrCode::format('png')
-            ->size(250)
-            ->generate($qr, public_path('/assets/img/qrcode.png'));
-        echo '<img src="/assets/img/qrcode.png" ></img>';
 
 
         $price=0;
@@ -136,4 +153,6 @@ class QrController extends Controller
         \Debugbar::disable();
     echo $ticket->price.'/'.$ticket->finished_at;
     }
+
+
 }
